@@ -24,7 +24,9 @@
     "projen": "npx projen"
   },
   "devDependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.992.0",
     "@stylistic/eslint-plugin": "^2",
+    "@types/aws-lambda": "^8.10.160",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.2.3",
     "@typescript-eslint/eslint-plugin": "^8",
@@ -43,8 +45,20 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@aws-lambda-powertools/logger": "^2.31.0",
+    "@aws-lambda-powertools/tracer": "^2.31.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.992.0",
+    "@aws-sdk/client-dynamodb": "^3.992.0",
+    "@aws-sdk/client-eventbridge": "^3.992.0",
+    "@hono/swagger-ui": "^0.5.3",
+    "@hono/zod-openapi": "^1.2.2",
+    "@middy/core": "^7.0.3",
     "aws-cdk-lib": "^2.1.0",
-    "constructs": "^10.0.5"
+    "aws-lambda": "^1.0.7",
+    "constructs": "^10.0.5",
+    "hono": "^4.11.9",
+    "vimo-events": "^0.34.0",
+    "zod": "^4.3.6"
   },
   "license": "Apache-2.0",
   "publishConfig": {

@@ -1,23 +1,23 @@
-import { App, Stack, StackProps } from "aws-cdk-lib"
-import { Construct } from "constructs"
+import * as cdk from "aws-cdk-lib";
+import { CognitoEsg } from "./cognito-esg";
 
-export class MyStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps = {}) {
-    super(scope, id, props)
+const env = {
+  account: process.env.CDK_DEPLOY_ACCOUNT ?? process.env.CDK_DEFAULT_ACCOUNT,
+  region: process.env.CDK_DEPLOY_REGION ?? process.env.CDK_DEFAULT_REGION,
+};
 
-    // define resources here...
-  }
+const app = new cdk.App();
+
+const serviceName = app.node.tryGetContext("serviceName") as string | undefined;
+if (!serviceName) {
+  throw new Error("Missing context: serviceName");
 }
 
-// for development, use account/region from cdk cli
-const devEnv = {
-  account: process.env.CDK_DEFAULT_ACCOUNT,
-  region: process.env.CDK_DEFAULT_REGION,
+const stage = app.node.tryGetContext("stage") as string | undefined;
+if (!stage) {
+  throw new Error("Missing context: stage");
 }
 
-const app = new App()
+new CognitoEsg(app, `${stage}-${serviceName}`, { env, stage, serviceName });
 
-new MyStack(app, "cognito-esg-dev", { env: devEnv })
-// new MyStack(app, 'cognito-esg-prod', { env: prodEnv });
-
-app.synth()
+app.synth();
