@@ -7,6 +7,7 @@ export const env = z
     SERVICE: z.string(),
     USER_POOL_ID: z.string(),
     COGNITO_CLIENT_ID: z.string(),
+    TABLE_NAME: z.string(),
   })
   .parse(process.env);
 

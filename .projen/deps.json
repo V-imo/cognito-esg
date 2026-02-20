@@ -103,6 +103,14 @@
       "type": "runtime"
     },
     {
+      "name": "@aws-sdk/lib-dynamodb",
+      "type": "runtime"
+    },
+    {
+      "name": "@aws-sdk/util-dynamodb",
+      "type": "runtime"
+    },
+    {
       "name": "@hono/swagger-ui",
       "type": "runtime"
     },
@@ -129,11 +137,16 @@
       "type": "runtime"
     },
     {
+      "name": "dynamodb-toolbox",
+      "type": "runtime"
+    },
+    {
       "name": "hono",
       "type": "runtime"
     },
     {
       "name": "vimo-events",
+      "version": "^0.35.0",
       "type": "runtime"
     },
     {

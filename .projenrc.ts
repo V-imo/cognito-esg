@@ -13,6 +13,8 @@ const project = new Projalf({
 
     "@aws-sdk/client-dynamodb",
     "@aws-sdk/client-eventbridge",
+    "@aws-sdk/lib-dynamodb",
+    "@aws-sdk/util-dynamodb",
 
     "aws-cdk-lib",
     "aws-lambda",
@@ -22,11 +24,12 @@ const project = new Projalf({
     "zod",
 
     "hono",
+    "dynamodb-toolbox",
     "@hono/zod-openapi",
     "@hono/swagger-ui",
 
     "@middy/core",
-    "vimo-events",
+    "vimo-events@^0.35.0",
   ],
   name: "cognito-esg",
   projenrcTs: true,

@@ -1,5 +1,5 @@
 import { EventBridgeEvent } from "aws-lambda"
-
+import {EmployeeCreatedEvent,EmployeeDeletedEvent,InspectorCreatedEvent,InspectorDeletedEvent} from "vimo-events";
 type EventEnvelope = {
   type: string;
   data: Record<string, any>;

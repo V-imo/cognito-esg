@@ -50,7 +50,8 @@
     "@aws-sdk/client-cognito-identity-provider": "^3.992.0",
     "@aws-sdk/client-dynamodb": "^3.992.0",
     "@aws-sdk/client-eventbridge": "^3.992.0",
-    "@aws-sdk/lib-dynamodb": "^3.992.0",
+    "@aws-sdk/lib-dynamodb": "^3.994.0",
+    "@aws-sdk/util-dynamodb": "^3.994.0",
     "@hono/swagger-ui": "^0.5.3",
     "@hono/zod-openapi": "^1.2.2",
     "@middy/core": "^7.0.3",
@@ -59,7 +60,7 @@
     "constructs": "^10.0.5",
     "dynamodb-toolbox": "^2.8.0",
     "hono": "^4.11.9",
-    "vimo-events": "^0.34.0",
+    "vimo-events": "^0.35.0",
     "zod": "^4.3.6"
   },
   "license": "Apache-2.0",
