@@ -13,3 +13,10 @@ export const env = z
 
 export const logger = new Logger({ serviceName: env.SERVICE });
 export const tracer = new Tracer({ serviceName: env.SERVICE });
+
+export const ignoreOplockError = (error: Error) => {
+  if (error.name === "ConditionalCheckFailedException") {
+    return;
+  }
+  throw error;
+};

@@ -8,6 +8,15 @@ import * as apigw from "aws-cdk-lib/aws-apigatewayv2";
 import * as integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as ssm from "aws-cdk-lib/aws-ssm";
+import * as ddb from "aws-cdk-lib/aws-dynamodb";
+import * as events from "aws-cdk-lib/aws-events";
+import * as events_targets from "aws-cdk-lib/aws-events-targets";
+import {
+  EmployeeCreatedEvent,
+  EmployeeDeletedEvent,
+  InspectorCreatedEvent,
+  InspectorDeletedEvent,
+} from "vimo-events";
 
 export interface CognitoEsgProps extends cdk.StackProps {
   serviceName: string;
@@ -30,6 +39,56 @@ export class CognitoEsg extends cdk.Stack {
         allowCredentials: false,
       },
     });
+
+    const eventBus = this.getEventBus(props.stage);
+    const table = new ddb.TableV2(this, "UsersBffTable", {
+      partitionKey: { name: "PK", type: ddb.AttributeType.STRING },
+      sortKey: { name: "SK", type: ddb.AttributeType.STRING },
+      dynamoStream: ddb.StreamViewType.NEW_AND_OLD_IMAGES,
+      billing: ddb.Billing.onDemand(),
+      removalPolicy:
+        props.stage === "prod"
+          ? cdk.RemovalPolicy.RETAIN
+          : cdk.RemovalPolicy.DESTROY,
+      timeToLiveAttribute: "ttl",
+    });
+
+    const listener = new ln.NodejsFunction(this, "Listener", {
+      entry: `${__dirname}/functions/listener.ts`,
+      environment: {
+        STAGE: props.stage,
+        SERVICE: props.serviceName,
+        TABLE_NAME: table.tableName,
+        EVENT_BUS_NAME: eventBus.eventBusName,
+      },
+      runtime: lambda.Runtime.NODEJS_22_X,
+      architecture: lambda.Architecture.ARM_64,
+      logRetention: logs.RetentionDays.THREE_DAYS,
+      tracing: lambda.Tracing.ACTIVE,
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+    });
+    table.grantReadWriteData(listener);
+    eventBus.grantPutEventsTo(listener);
+
+    new events.Rule(this, "Rule", {
+      eventBus,
+      eventPattern: {
+        source: ["custom"],
+        detailType: [
+          EmployeeCreatedEvent.type,
+          EmployeeDeletedEvent.type,
+          InspectorCreatedEvent.type,
+          InspectorDeletedEvent.type,
+        ],
+      },
+      targets: [
+        new events_targets.LambdaFunction(listener, {
+          retryAttempts: 3,
+        }),
+      ],
+    });
+
     const userPool = new cognito.UserPool(this, "UserPool", {
       selfSignUpEnabled: false,
       signInAliases: { email: true },
@@ -86,11 +145,12 @@ export class CognitoEsg extends cdk.Stack {
     });
 
     const apiFunction = new ln.NodejsFunction(this, "ApiFunction", {
-      entry: `${__dirname}/functions/apis/index.ts`,
+      entry: `${__dirname}/functions/api/index.ts`,
       environment: {
         STAGE: props.stage,
         SERVICE: props.serviceName,
         NODE_OPTIONS: "--enable-source-maps",
+        TABLE_NAME: table.tableName,
         USER_POOL_ID: userPool.userPoolId,
         COGNITO_CLIENT_ID: userPoolClient.userPoolClientId,
       },
@@ -122,5 +182,23 @@ export class CognitoEsg extends cdk.Stack {
       integration: apiIntegration,
       // authorizer: undefined,
     });
+  }
+
+  getEventBus(stage: string) {
+    if (stage.startsWith("test")) {
+      const eventBus = new events.EventBus(this, "EventBus");
+      new cdk.CfnOutput(this, "EventBusName", {
+        value: eventBus.eventBusName,
+      });
+      return eventBus;
+    }
+    return events.EventBus.fromEventBusArn(
+      this,
+      "EventBus",
+      ssm.StringParameter.valueForStringParameter(
+        this,
+        `/vimo/${stage}/event-bus-arn`,
+      ),
+    );
   }
 }
