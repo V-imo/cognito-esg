@@ -5,6 +5,11 @@
       "type": "build"
     },
     {
+      "name": "@faker-js/faker",
+      "version": "8",
+      "type": "build"
+    },
+    {
       "name": "@stylistic/eslint-plugin",
       "version": "^2",
       "type": "build"
@@ -51,6 +56,10 @@
     {
       "name": "eslint",
       "version": "^9",
+      "type": "build"
+    },
+    {
+      "name": "exponential-backoff",
       "type": "build"
     },
     {
@@ -142,6 +151,10 @@
     },
     {
       "name": "hono",
+      "type": "runtime"
+    },
+    {
+      "name": "serverless-spy",
       "type": "runtime"
     },
     {

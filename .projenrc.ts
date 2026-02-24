@@ -6,6 +6,8 @@ const project = new Projalf({
     "projalf",
     "@aws-sdk/client-cognito-identity-provider",
     "@types/aws-lambda",
+    "@faker-js/faker@8",
+    "exponential-backoff",
   ],
   deps: [
     "@aws-lambda-powertools/logger",
@@ -27,6 +29,7 @@ const project = new Projalf({
     "dynamodb-toolbox",
     "@hono/zod-openapi",
     "@hono/swagger-ui",
+    "serverless-spy",
 
     "@middy/core",
     "vimo-events@^0.35.0",

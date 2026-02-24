@@ -17,6 +17,7 @@ import {
   InspectorCreatedEvent,
   InspectorDeletedEvent,
 } from "vimo-events";
+import { ServerlessSpy } from "serverless-spy";
 
 export interface CognitoEsgProps extends cdk.StackProps {
   serviceName: string;
@@ -51,6 +52,12 @@ export class CognitoEsg extends cdk.Stack {
           ? cdk.RemovalPolicy.RETAIN
           : cdk.RemovalPolicy.DESTROY,
       timeToLiveAttribute: "ttl",
+    });
+    new cdk.CfnOutput(this, "UsersBffTableName", {
+      value: table.tableName,
+    });
+    new cdk.CfnOutput(this, "ServiceName", {
+      value: props.serviceName,
     });
 
     const listener = new ln.NodejsFunction(this, "Listener", {
@@ -168,6 +175,11 @@ export class CognitoEsg extends cdk.Stack {
       ],
       memorySize: 512,
     });
+
+    new cdk.CfnOutput(this, "ApiUrl", {
+      value: api.url ?? "",
+    });
+
     const apiIntegration = new integrations.HttpLambdaIntegration(
       "ApiIntegration",
       apiFunction,
@@ -182,6 +194,12 @@ export class CognitoEsg extends cdk.Stack {
       integration: apiIntegration,
       // authorizer: undefined,
     });
+    if (props.stage.startsWith("test")) {
+      const serverlessSpy = new ServerlessSpy(this, "ServerlessSpy", {
+        generateSpyEventsFileLocation: "test/spy.ts",
+      });
+      serverlessSpy.spy();
+    }
   }
 
   getEventBus(stage: string) {
