@@ -42,7 +42,7 @@ export class CognitoEsg extends cdk.Stack {
     });
 
     const eventBus = this.getEventBus(props.stage);
-    const table = new ddb.TableV2(this, "UsersBffTable", {
+    const table = new ddb.TableV2(this, "CognitoEsgTable", {
       partitionKey: { name: "PK", type: ddb.AttributeType.STRING },
       sortKey: { name: "SK", type: ddb.AttributeType.STRING },
       dynamoStream: ddb.StreamViewType.NEW_AND_OLD_IMAGES,
@@ -53,7 +53,7 @@ export class CognitoEsg extends cdk.Stack {
           : cdk.RemovalPolicy.DESTROY,
       timeToLiveAttribute: "ttl",
     });
-    new cdk.CfnOutput(this, "UsersBffTableName", {
+    new cdk.CfnOutput(this, "CognitoEsgTableName", {
       value: table.tableName,
     });
     new cdk.CfnOutput(this, "ServiceName", {

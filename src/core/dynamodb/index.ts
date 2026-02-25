@@ -7,7 +7,7 @@ export const documentClient = DynamoDBDocumentClient.from(
   tracer.captureAWSv3Client(new DynamoDBClient()),
 );
 
-export const UsersBffTable = new Table({
+export const CognitoEsgTable = new Table({
   name: env.TABLE_NAME,
   partitionKey: { name: "PK", type: "string" },
   sortKey: { name: "SK", type: "string" },

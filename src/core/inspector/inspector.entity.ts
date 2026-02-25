@@ -6,7 +6,7 @@ import {
   number,
   boolean,
 } from "dynamodb-toolbox";
-import { UsersBffTable } from "../dynamodb";
+import { CognitoEsgTable } from "../dynamodb";
 
 export const InspectorEntity = new Entity({
   name: "Inspector",
@@ -22,7 +22,7 @@ export const InspectorEntity = new Entity({
     PK: `AGENCY#${agencyId}`,
     SK: `INSPECTOR#${email}`,
   }),
-  table: UsersBffTable,
+  table: CognitoEsgTable,
 });
 export type InspectorEntityType = Omit<
   InputItem<typeof InspectorEntity>,
