@@ -15,7 +15,6 @@ export const EmployeeEntity = new Entity({
     firstname: string(),
     lastname: string(),
     email: string().key(),
-    timezone: string(),
     oplock: number(),
     latched: boolean().optional(),
   }),

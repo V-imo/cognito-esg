@@ -73,7 +73,6 @@ test("should persist employee on employee-created event", async () => {
     expect(item.email).toBe(employee.email);
     expect(item.firstname).toBe(employee.given_name);
     expect(item.lastname).toBe(employee.family_name);
-    expect(item.timezone).toBe("UTC");
     expect(item.oplock).toEqual(expect.any(Number));
   });
 });

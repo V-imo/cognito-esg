@@ -73,7 +73,6 @@ test("should persist inspector on inspector-created event", async () => {
     expect(item.email).toBe(inspector.email);
     expect(item.firstname).toBe(inspector.given_name);
     expect(item.lastname).toBe(inspector.family_name);
-    expect(item.timezone).toBe("UTC");
     expect(item.oplock).toEqual(expect.any(Number));
   });
 });

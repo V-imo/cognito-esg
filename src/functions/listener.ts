@@ -36,7 +36,6 @@ export const handler = async (
         email: parsed.data.email,
         firstname: parsed.data.given_name,
         lastname: parsed.data.family_name,
-        timezone: "UTC",
         oplock: parsed.timestamp,
       });
       break;
@@ -53,7 +52,6 @@ export const handler = async (
         email: parsed.data.email,
         firstname: parsed.data.given_name,
         lastname: parsed.data.family_name,
-        timezone: "UTC",
         oplock: parsed.timestamp,
       });
       break;
