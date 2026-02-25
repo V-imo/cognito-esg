@@ -78,9 +78,7 @@ test("should persist employee on employee-created event", async () => {
   });
 });
 
-test.failing(
-  "should remove employee on employee-deleted event",
-  async () => {
+test("should remove employee on employee-deleted event", async () => {
     const employee = generateEmployeeCreatedEventData();
     const PK = `AGENCY#${employee.agencyId}`;
     const SK = `EMPLOYEE#${employee.email}`;
@@ -89,13 +87,12 @@ test.failing(
     await waitForBusEvent(EmployeeCreatedEvent.type);
     await tableClient.expectItemEventually(PK, SK);
 
-    // TODO: Delete event carries employeeId, but table key uses email, so current listener delete cannot target this row.
     const deletion = generateEmployeeDeletedEventData({
       agencyId: employee.agencyId,
+      email: employee.email,
     });
     await eventBridge.send(EmployeeDeletedEvent.build(deletion));
     await waitForBusEvent(EmployeeDeletedEvent.type);
 
     await tableClient.expectNoItemEventually(PK, SK);
-  },
-);
+});

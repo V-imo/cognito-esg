@@ -32,7 +32,7 @@ const project = new Projalf({
     "serverless-spy",
 
     "@middy/core",
-    "vimo-events@^0.35.0",
+    "vimo-events@^0.36.0",
   ],
   name: "cognito-esg",
   projenrcTs: true,

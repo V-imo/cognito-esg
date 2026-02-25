@@ -78,9 +78,7 @@ test("should persist inspector on inspector-created event", async () => {
   });
 });
 
-test.failing(
-  "should remove inspector on inspector-deleted event",
-  async () => {
+test("should remove inspector on inspector-deleted event", async () => {
     const inspector = generateInspectorCreatedEventData();
     const PK = `AGENCY#${inspector.agencyId}`;
     const SK = `INSPECTOR#${inspector.email}`;
@@ -89,13 +87,12 @@ test.failing(
     await waitForBusEvent(InspectorCreatedEvent.type);
     await tableClient.expectItemEventually(PK, SK);
 
-    // TODO: Delete event carries inspectorId, but table key uses email, so current listener delete cannot target this row.
     const deletion = generateInspectorDeletedEventData({
       agencyId: inspector.agencyId,
+      email: inspector.email,
     });
     await eventBridge.send(InspectorDeletedEvent.build(deletion));
     await waitForBusEvent(InspectorDeletedEvent.type);
 
     await tableClient.expectNoItemEventually(PK, SK);
-  },
-);
+});

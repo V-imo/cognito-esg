@@ -43,7 +43,7 @@ export const handler = async (
     }
     case EmployeeDeletedEvent.type: {
       const parsed = EmployeeDeletedEvent.parse(event.detail);
-      await Employee.del(parsed.data.agencyId, parsed.data.employeeId);
+      await Employee.del(parsed.data.agencyId, parsed.data.email);
       break;
     }
     case InspectorCreatedEvent.type: {
@@ -60,7 +60,7 @@ export const handler = async (
     }
     case InspectorDeletedEvent.type: {
       const parsed = InspectorDeletedEvent.parse(event.detail);
-      await Inspector.del(parsed.data.agencyId, parsed.data.inspectorId);
+      await Inspector.del(parsed.data.agencyId, parsed.data.email);
       break;
     }
     default:

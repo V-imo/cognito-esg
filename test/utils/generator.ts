@@ -13,7 +13,7 @@ export type EmployeeCreatedEventInput = {
 
 export type EmployeeDeletedEventInput = {
   agencyId: string;
-  employeeId: string;
+  email: string;
 };
 
 export type InspectorCreatedEventInput = {
@@ -25,7 +25,7 @@ export type InspectorCreatedEventInput = {
 
 export type InspectorDeletedEventInput = {
   agencyId: string;
-  inspectorId: string;
+  email: string;
 };
 
 export const generateEmployeeCreatedEventData =
@@ -39,7 +39,7 @@ export const generateEmployeeCreatedEventData =
 export const generateEmployeeDeletedEventData =
   makeGenerator<EmployeeDeletedEventInput>(() => ({
     agencyId: `agency_${faker.string.uuid()}`,
-    employeeId: faker.string.uuid(),
+    email: faker.internet.email().toLowerCase(),
   }));
 
 export const generateInspectorCreatedEventData =
@@ -53,6 +53,5 @@ export const generateInspectorCreatedEventData =
 export const generateInspectorDeletedEventData =
   makeGenerator<InspectorDeletedEventInput>(() => ({
     agencyId: `agency_${faker.string.uuid()}`,
-    inspectorId: faker.string.uuid(),
+    email: faker.internet.email().toLowerCase(),
   }));
-
