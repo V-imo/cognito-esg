@@ -2,10 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as ln from "aws-cdk-lib/aws-lambda-nodejs";
 import * as cognito from "aws-cdk-lib/aws-cognito";
-import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as apigw from "aws-cdk-lib/aws-apigatewayv2";
-import * as integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as ddb from "aws-cdk-lib/aws-dynamodb";
@@ -27,19 +24,6 @@ export interface CognitoEsgProps extends cdk.StackProps {
 export class CognitoEsg extends cdk.Stack {
   constructor(scope: Construct, id: string, props: CognitoEsgProps) {
     super(scope, id, props);
-    const api = new apigw.HttpApi(this, "CognitoESGApi", {
-      corsPreflight: {
-        allowHeaders: [
-          "Content-Type",
-          "Authorization",
-          "Content-Length",
-          "X-Requested-With",
-        ],
-        allowMethods: [apigw.CorsHttpMethod.ANY],
-        allowOrigins: ["*"],
-        allowCredentials: false,
-      },
-    });
 
     const eventBus = this.getEventBus(props.stage);
     const table = new ddb.TableV2(this, "CognitoEsgTable", {
@@ -151,49 +135,6 @@ export class CognitoEsg extends cdk.Stack {
       stringValue: userPoolClient.userPoolClientId,
     });
 
-    const apiFunction = new ln.NodejsFunction(this, "ApiFunction", {
-      entry: `${__dirname}/functions/api/index.ts`,
-      environment: {
-        STAGE: props.stage,
-        SERVICE: props.serviceName,
-        NODE_OPTIONS: "--enable-source-maps",
-        TABLE_NAME: table.tableName,
-        USER_POOL_ID: userPool.userPoolId,
-        COGNITO_CLIENT_ID: userPoolClient.userPoolClientId,
-      },
-      bundling: { minify: true, sourceMap: true },
-      runtime: lambda.Runtime.NODEJS_20_X,
-      architecture: lambda.Architecture.ARM_64,
-      logRetention: logs.RetentionDays.THREE_DAYS,
-      timeout: cdk.Duration.seconds(30),
-      initialPolicy: [
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ["cognito-idp:*"],
-          resources: [userPool.userPoolArn],
-        }),
-      ],
-      memorySize: 512,
-    });
-
-    new cdk.CfnOutput(this, "ApiUrl", {
-      value: api.url ?? "",
-    });
-
-    const apiIntegration = new integrations.HttpLambdaIntegration(
-      "ApiIntegration",
-      apiFunction,
-    );
-    api.addRoutes({
-      path: "/{proxy+}",
-      methods: [
-        apigw.HttpMethod.GET,
-        apigw.HttpMethod.POST,
-        apigw.HttpMethod.DELETE,
-      ],
-      integration: apiIntegration,
-      // authorizer: undefined,
-    });
     if (props.stage.startsWith("test")) {
       const serverlessSpy = new ServerlessSpy(this, "ServerlessSpy", {
         generateSpyEventsFileLocation: "test/spy.ts",
