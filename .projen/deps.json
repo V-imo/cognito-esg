@@ -5,6 +5,11 @@
       "type": "build"
     },
     {
+      "name": "@faker-js/faker",
+      "version": "8",
+      "type": "build"
+    },
+    {
       "name": "@stylistic/eslint-plugin",
       "version": "^2",
       "type": "build"
@@ -51,6 +56,10 @@
     {
       "name": "eslint",
       "version": "^9",
+      "type": "build"
+    },
+    {
+      "name": "exponential-backoff",
       "type": "build"
     },
     {
@@ -103,6 +112,14 @@
       "type": "runtime"
     },
     {
+      "name": "@aws-sdk/lib-dynamodb",
+      "type": "runtime"
+    },
+    {
+      "name": "@aws-sdk/util-dynamodb",
+      "type": "runtime"
+    },
+    {
       "name": "@hono/swagger-ui",
       "type": "runtime"
     },
@@ -129,11 +146,20 @@
       "type": "runtime"
     },
     {
+      "name": "dynamodb-toolbox",
+      "type": "runtime"
+    },
+    {
       "name": "hono",
       "type": "runtime"
     },
     {
+      "name": "serverless-spy",
+      "type": "runtime"
+    },
+    {
       "name": "vimo-events",
+      "version": "^0.36.0",
       "type": "runtime"
     },
     {

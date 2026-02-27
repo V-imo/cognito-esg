@@ -1,0 +1,9 @@
+{
+  "test-cognito-esg": {
+    "EventBusName": "testcognitoesgEventBus76F610DE",
+    "ApiUrl": "https://7qkh6dvr11.execute-api.eu-north-1.amazonaws.com/",
+    "ServiceName": "cognito-esg",
+    "UsersBffTableName": "test-cognito-esg-UsersBffTableAFFAF744-1EPC9TNRMZEIH",
+    "ServerlessSpyWsUrl": "a3ksyngqjdf8yd-ats.iot.eu-north-1.amazonaws.com/TestCognitoEsg"
+  }
+}
