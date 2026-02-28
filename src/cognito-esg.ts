@@ -8,6 +8,7 @@ import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as ddb from "aws-cdk-lib/aws-dynamodb";
 import * as events from "aws-cdk-lib/aws-events";
 import * as events_targets from "aws-cdk-lib/aws-events-targets";
+import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
 import {
   EmployeeCreatedEvent,
   EmployeeDeletedEvent,
@@ -103,6 +104,9 @@ export class CognitoEsg extends cdk.Stack {
     const inspectorPool = new cognito.UserPool(this, "InspectorPool", {
       selfSignUpEnabled: false,
       signInAliases: { email: true },
+      customAttributes: {
+        currentAgency: new cognito.StringAttribute({ mutable: true }),
+      },
       userInvitation: {
         emailSubject: "Welcome to Vimo!",
         emailBody: "Hello {username}, your temporary password is {####}",
@@ -116,6 +120,52 @@ export class CognitoEsg extends cdk.Stack {
       preventUserExistenceErrors: true,
       generateSecret: true,
     });
+
+    const trigger = new ln.NodejsFunction(this, "Trigger", {
+      entry: `${__dirname}/functions/trigger.ts`,
+      environment: {
+        STAGE: props.stage,
+        SERVICE: props.serviceName,
+        USER_POOL_ID: userPool.userPoolId,
+        INSPECTOR_POOL_ID: inspectorPool.userPoolId,
+      },
+      runtime: lambda.Runtime.NODEJS_22_X,
+      architecture: lambda.Architecture.ARM_64,
+      logRetention: logs.RetentionDays.THREE_DAYS,
+      tracing: lambda.Tracing.ACTIVE,
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+    });
+    trigger.addEventSource(
+      new lambdaEventSources.DynamoEventSource(table, {
+        startingPosition: lambda.StartingPosition.TRIM_HORIZON,
+        batchSize: 100,
+        bisectBatchOnError: true,
+        retryAttempts: 3,
+      }),
+    );
+
+    table.grantStreamRead(trigger);
+    userPool.grant(
+      trigger,
+      "cognito-idp:AdminCreateUser",
+      "cognito-idp:AdminDeleteUser",
+      "cognito-idp:AdminUpdateUserAttributes",
+      "cognito-idp:AdminListGroupsForUser",
+      "cognito-idp:CreateGroup",
+      "cognito-idp:AdminAddUserToGroup",
+      "cognito-idp:AdminRemoveUserFromGroup",
+    );
+    inspectorPool.grant(
+      trigger,
+      "cognito-idp:AdminCreateUser",
+      "cognito-idp:AdminDeleteUser",
+      "cognito-idp:AdminUpdateUserAttributes",
+      "cognito-idp:AdminListGroupsForUser",
+      "cognito-idp:CreateGroup",
+      "cognito-idp:AdminAddUserToGroup",
+      "cognito-idp:AdminRemoveUserFromGroup",
+    );
 
     new ssm.StringParameter(this, "InspectorPoolArnParameter", {
       parameterName: `/vimo/${props.stage}/inspector-pool-arn`,
