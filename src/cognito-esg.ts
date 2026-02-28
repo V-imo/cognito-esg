@@ -100,6 +100,9 @@ export class CognitoEsg extends cdk.Stack {
       preventUserExistenceErrors: true,
       generateSecret: true,
     });
+    new cdk.CfnOutput(this, "UserPoolId", {
+      value: userPool.userPoolId,
+    });
 
     const inspectorPool = new cognito.UserPool(this, "InspectorPool", {
       selfSignUpEnabled: false,
@@ -119,6 +122,9 @@ export class CognitoEsg extends cdk.Stack {
       authFlows: { userPassword: true },
       preventUserExistenceErrors: true,
       generateSecret: true,
+    });
+    new cdk.CfnOutput(this, "InspectorPoolId", {
+      value: inspectorPool.userPoolId,
     });
 
     const trigger = new ln.NodejsFunction(this, "Trigger", {

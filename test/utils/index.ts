@@ -3,7 +3,6 @@ import {
   PutEventsCommand,
 } from "@aws-sdk/client-eventbridge";
 import { backOff } from "exponential-backoff";
-import { EventBridgeEvent } from "aws-lambda";
 
 export const eventualAssertion = async <T>(
   fn: () => Promise<T>,
@@ -33,5 +32,3 @@ export class EventBridge {
     return this.eventBridgeClient.send(event);
   }
 }
-
-export { DynamoTableClient } from "./dynamodb";
