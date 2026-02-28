@@ -1,11 +1,13 @@
 import fs from "fs";
 import {
   InspectorCreatedEvent,
+  InspectorDeletedEvent,
 } from "vimo-events";
 import { EventBridge } from "../utils";
 import { CognitoUserPoolClient } from "../utils/cognito";
 import {
   generateInspectorCreatedEventData,
+  generateInspectorDeletedEventData,
 } from "../utils/generator";
 
 type TestOutputs = {
@@ -51,4 +53,19 @@ test("should create inspector in Cognito with current agency group", async () =>
     expect(user.attributes["custom:currentAgency"]).toBe(inspector.agencyId);
     expect(user.groups).toContain(inspector.agencyId);
   });
+});
+
+test("should delete inspector from Cognito when last agency is removed", async () => {
+  const inspector = generateInspectorCreatedEventData();
+
+  await eventBridge.send(InspectorCreatedEvent.build(inspector));
+  await inspectorPoolClient.expectUserEventually(inspector.email);
+
+  const deletion = generateInspectorDeletedEventData({
+    agencyId: inspector.agencyId,
+    email: inspector.email,
+  });
+  await eventBridge.send(InspectorDeletedEvent.build(deletion));
+
+  await inspectorPoolClient.expectNoUserEventually(inspector.email);
 });

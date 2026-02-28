@@ -63,4 +63,10 @@ export class CognitoUserPoolClient {
       assertion?.(user as CognitoUser);
     });
   }
+
+  async expectNoUserEventually(username: string) {
+    return eventualAssertion(async () => this.getUser(username), (user) => {
+      expect(user).toBeUndefined();
+    });
+  }
 }

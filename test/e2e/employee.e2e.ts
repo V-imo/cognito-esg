@@ -1,11 +1,13 @@
 import fs from "fs";
 import {
   EmployeeCreatedEvent,
+  EmployeeDeletedEvent,
 } from "vimo-events";
 import { EventBridge } from "../utils";
 import { CognitoUserPoolClient } from "../utils/cognito";
 import {
   generateEmployeeCreatedEventData,
+  generateEmployeeDeletedEventData,
 } from "../utils/generator";
 
 type TestOutputs = {
@@ -51,4 +53,19 @@ test("should create employee in Cognito with current agency group", async () => 
     expect(user.attributes["custom:currentAgency"]).toBe(employee.agencyId);
     expect(user.groups).toContain(employee.agencyId);
   });
+});
+
+test("should delete employee from Cognito when last agency is removed", async () => {
+  const employee = generateEmployeeCreatedEventData();
+
+  await eventBridge.send(EmployeeCreatedEvent.build(employee));
+  await userPoolClient.expectUserEventually(employee.email);
+
+  const deletion = generateEmployeeDeletedEventData({
+    agencyId: employee.agencyId,
+    email: employee.email,
+  });
+  await eventBridge.send(EmployeeDeletedEvent.build(deletion));
+
+  await userPoolClient.expectNoUserEventually(employee.email);
 });
