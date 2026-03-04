@@ -152,26 +152,20 @@ export class CognitoEsg extends cdk.Stack {
     );
 
     table.grantStreamRead(trigger);
-    userPool.grant(
-      trigger,
+    const cognitoActions = [
       "cognito-idp:AdminCreateUser",
       "cognito-idp:AdminDeleteUser",
       "cognito-idp:AdminUpdateUserAttributes",
       "cognito-idp:AdminListGroupsForUser",
+      "cognito-idp:AdminGetUser",
+      "cognito-idp:GetGroup",
       "cognito-idp:CreateGroup",
       "cognito-idp:AdminAddUserToGroup",
       "cognito-idp:AdminRemoveUserFromGroup",
-    );
-    inspectorPool.grant(
-      trigger,
-      "cognito-idp:AdminCreateUser",
-      "cognito-idp:AdminDeleteUser",
-      "cognito-idp:AdminUpdateUserAttributes",
-      "cognito-idp:AdminListGroupsForUser",
-      "cognito-idp:CreateGroup",
-      "cognito-idp:AdminAddUserToGroup",
-      "cognito-idp:AdminRemoveUserFromGroup",
-    );
+    ];
+    for (const pool of [userPool, inspectorPool]) {
+      pool.grant(trigger, ...cognitoActions);
+    }
 
     new ssm.StringParameter(this, "InspectorPoolArnParameter", {
       parameterName: `/vimo/${props.stage}/inspector-pool-arn`,
