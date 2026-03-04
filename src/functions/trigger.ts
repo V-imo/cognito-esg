@@ -78,6 +78,30 @@ const deleteUserFromAgency = async (
   email: string,
   agencyId: string,
 ) => {
+  const userExists = await checkUserExists(userPoolId, email, agencyId);
+  if (!userExists) {
+    return;
+  }
+  const groupExists = await checkGroupExists(userPoolId, email, agencyId);
+  if (!groupExists) {
+    return;
+  }
+  const userInGroup = await checkUserInGroup(userPoolId, email, agencyId);
+  if (!userInGroup) {
+    return;
+  }
+  const removed = await removeUserFromGroup(userPoolId, email, agencyId);
+  if (!removed) {
+    return;
+  }
+  await handlePostRemoval(userPoolId, email);
+};
+
+const checkUserExists = async (
+  userPoolId: string,
+  email: string,
+  groupName: string,
+): Promise<boolean> => {
   try {
     await cognito.send(
       new AdminGetUserCommand({
@@ -85,38 +109,51 @@ const deleteUserFromAgency = async (
         Username: email,
       }),
     );
+    return true;
   } catch (error) {
     if (error instanceof UserNotFoundException) {
       logger.info("User not found in Cognito, skipping remove from group", {
         poolId: userPoolId,
         email,
-        groupName: agencyId,
+        groupName,
       });
-      return;
+      return false;
     }
     throw error;
   }
+};
 
+const checkGroupExists = async (
+  userPoolId: string,
+  email: string,
+  groupName: string,
+): Promise<boolean> => {
   try {
     await cognito.send(
       new GetGroupCommand({
-        GroupName: agencyId,
+        GroupName: groupName,
         UserPoolId: userPoolId,
       }),
     );
+    return true;
   } catch (error) {
     if (error instanceof ResourceNotFoundException) {
       logger.info("Group not found in Cognito, skipping remove from group", {
         poolId: userPoolId,
         email,
-        groupName: agencyId,
+        groupName,
       });
-      return;
+      return false;
     }
     throw error;
   }
+};
 
-  let groupsForUser = [] as { GroupName?: string }[];
+const checkUserInGroup = async (
+  userPoolId: string,
+  email: string,
+  groupName: string,
+): Promise<boolean> => {
   try {
     const { Groups } = await cognito.send(
       new AdminListGroupsForUserCommand({
@@ -124,37 +161,48 @@ const deleteUserFromAgency = async (
         Username: email,
       }),
     );
-    groupsForUser = Groups ?? [];
+    const inGroup = (Groups ?? []).some(
+      (group) => group.GroupName === groupName,
+    );
+    if (!inGroup) {
+      logger.info(
+        "User is not in group in Cognito, skipping remove from group",
+        {
+          poolId: userPoolId,
+          email,
+          groupName,
+        },
+      );
+      return false;
+    }
+    return true;
   } catch (error) {
     if (error instanceof UserNotFoundException) {
       logger.info("User not found in Cognito, skipping remove from group", {
         poolId: userPoolId,
         email,
-        groupName: agencyId,
+        groupName,
       });
-      return;
+      return false;
     }
     throw error;
   }
+};
 
-  const isUserInGroup = groupsForUser.some((group) => group.GroupName === agencyId);
-  if (!isUserInGroup) {
-    logger.info("User is not in group in Cognito, skipping remove from group", {
-      poolId: userPoolId,
-      email,
-      groupName: agencyId,
-    });
-    return;
-  }
-
+const removeUserFromGroup = async (
+  userPoolId: string,
+  email: string,
+  groupName: string,
+): Promise<boolean> => {
   try {
     await cognito.send(
       new AdminRemoveUserFromGroupCommand({
-        GroupName: agencyId,
+        GroupName: groupName,
         UserPoolId: userPoolId,
         Username: email,
       }),
     );
+    return true;
   } catch (error) {
     if (
       error instanceof UserNotFoundException ||
@@ -165,14 +213,16 @@ const deleteUserFromAgency = async (
         {
           poolId: userPoolId,
           email,
-          groupName: agencyId,
+          groupName,
         },
       );
-      return;
+      return false;
     }
     throw error;
   }
+};
 
+const handlePostRemoval = async (userPoolId: string, email: string) => {
   try {
     const { Groups } = await cognito.send(
       new AdminListGroupsForUserCommand({
