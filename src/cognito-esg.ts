@@ -1,21 +1,21 @@
-import * as cdk from "aws-cdk-lib";
-import { Construct } from "constructs";
-import * as ln from "aws-cdk-lib/aws-lambda-nodejs";
-import * as cognito from "aws-cdk-lib/aws-cognito";
-import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as logs from "aws-cdk-lib/aws-logs";
-import * as ssm from "aws-cdk-lib/aws-ssm";
-import * as ddb from "aws-cdk-lib/aws-dynamodb";
-import * as events from "aws-cdk-lib/aws-events";
-import * as events_targets from "aws-cdk-lib/aws-events-targets";
-import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
+import * as cdk from "aws-cdk-lib"
+import * as cognito from "aws-cdk-lib/aws-cognito"
+import * as ddb from "aws-cdk-lib/aws-dynamodb"
+import * as events from "aws-cdk-lib/aws-events"
+import * as events_targets from "aws-cdk-lib/aws-events-targets"
+import * as lambda from "aws-cdk-lib/aws-lambda"
+import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources"
+import * as ln from "aws-cdk-lib/aws-lambda-nodejs"
+import * as logs from "aws-cdk-lib/aws-logs"
+import * as ssm from "aws-cdk-lib/aws-ssm"
+import { Construct } from "constructs"
+import { ServerlessSpy } from "serverless-spy"
 import {
   EmployeeCreatedEvent,
   EmployeeDeletedEvent,
   InspectorCreatedEvent,
   InspectorDeletedEvent,
-} from "vimo-events";
-import { ServerlessSpy } from "serverless-spy";
+} from "vimo-events"
 
 export interface CognitoEsgProps extends cdk.StackProps {
   serviceName: string;
@@ -24,9 +24,9 @@ export interface CognitoEsgProps extends cdk.StackProps {
 
 export class CognitoEsg extends cdk.Stack {
   constructor(scope: Construct, id: string, props: CognitoEsgProps) {
-    super(scope, id, props);
+    super(scope, id, props)
 
-    const eventBus = this.getEventBus(props.stage);
+    const eventBus = this.getEventBus(props.stage)
     const table = new ddb.TableV2(this, "CognitoEsgTable", {
       partitionKey: { name: "PK", type: ddb.AttributeType.STRING },
       sortKey: { name: "SK", type: ddb.AttributeType.STRING },
@@ -37,13 +37,13 @@ export class CognitoEsg extends cdk.Stack {
           ? cdk.RemovalPolicy.RETAIN
           : cdk.RemovalPolicy.DESTROY,
       timeToLiveAttribute: "ttl",
-    });
+    })
     new cdk.CfnOutput(this, "CognitoEsgTableName", {
       value: table.tableName,
-    });
+    })
     new cdk.CfnOutput(this, "ServiceName", {
       value: props.serviceName,
-    });
+    })
 
     const listener = new ln.NodejsFunction(this, "Listener", {
       entry: `${__dirname}/functions/listener.ts`,
@@ -59,9 +59,9 @@ export class CognitoEsg extends cdk.Stack {
       tracing: lambda.Tracing.ACTIVE,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
-    });
-    table.grantReadWriteData(listener);
-    eventBus.grantPutEventsTo(listener);
+    })
+    table.grantReadWriteData(listener)
+    eventBus.grantPutEventsTo(listener)
 
     new events.Rule(this, "Rule", {
       eventBus,
@@ -79,7 +79,7 @@ export class CognitoEsg extends cdk.Stack {
           retryAttempts: 3,
         }),
       ],
-    });
+    })
 
     const userPool = new cognito.UserPool(this, "UserPool", {
       selfSignUpEnabled: false,
@@ -94,15 +94,15 @@ export class CognitoEsg extends cdk.Stack {
       removalPolicy: props.stage.startsWith("test")
         ? cdk.RemovalPolicy.DESTROY
         : cdk.RemovalPolicy.RETAIN,
-    });
+    })
     const userPoolClient = userPool.addClient("UserPoolClient", {
       authFlows: { userPassword: true },
       preventUserExistenceErrors: true,
       generateSecret: true,
-    });
+    })
     new cdk.CfnOutput(this, "UserPoolId", {
       value: userPool.userPoolId,
-    });
+    })
 
     const inspectorPool = new cognito.UserPool(this, "InspectorPool", {
       selfSignUpEnabled: false,
@@ -117,15 +117,15 @@ export class CognitoEsg extends cdk.Stack {
       removalPolicy: props.stage.startsWith("test")
         ? cdk.RemovalPolicy.DESTROY
         : cdk.RemovalPolicy.RETAIN,
-    });
+    })
     const inspectorPoolClient = inspectorPool.addClient("InspectorPoolClient", {
       authFlows: { userPassword: true },
       preventUserExistenceErrors: true,
       generateSecret: true,
-    });
+    })
     new cdk.CfnOutput(this, "InspectorPoolId", {
       value: inspectorPool.userPoolId,
-    });
+    })
 
     const trigger = new ln.NodejsFunction(this, "Trigger", {
       entry: `${__dirname}/functions/trigger.ts`,
@@ -141,7 +141,7 @@ export class CognitoEsg extends cdk.Stack {
       tracing: lambda.Tracing.ACTIVE,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
-    });
+    })
     trigger.addEventSource(
       new lambdaEventSources.DynamoEventSource(table, {
         startingPosition: lambda.StartingPosition.TRIM_HORIZON,
@@ -149,9 +149,9 @@ export class CognitoEsg extends cdk.Stack {
         bisectBatchOnError: true,
         retryAttempts: 3,
       }),
-    );
+    )
 
-    table.grantStreamRead(trigger);
+    table.grantStreamRead(trigger)
     const cognitoActions = [
       "cognito-idp:AdminCreateUser",
       "cognito-idp:AdminDeleteUser",
@@ -162,44 +162,44 @@ export class CognitoEsg extends cdk.Stack {
       "cognito-idp:CreateGroup",
       "cognito-idp:AdminAddUserToGroup",
       "cognito-idp:AdminRemoveUserFromGroup",
-    ];
+    ]
     for (const pool of [userPool, inspectorPool]) {
-      pool.grant(trigger, ...cognitoActions);
+      pool.grant(trigger, ...cognitoActions)
     }
 
     new ssm.StringParameter(this, "InspectorPoolArnParameter", {
       parameterName: `/vimo/${props.stage}/inspector-pool-arn`,
       stringValue: inspectorPool.userPoolArn,
-    });
+    })
     new ssm.StringParameter(this, "InspectorPoolClientIdParameter", {
       parameterName: `/vimo/${props.stage}/inspector-pool-client-id`,
       stringValue: inspectorPoolClient.userPoolClientId,
-    });
+    })
 
     new ssm.StringParameter(this, "UserPoolArnParameter", {
       parameterName: `/vimo/${props.stage}/user-pool-arn`,
       stringValue: userPool.userPoolArn,
-    });
+    })
     new ssm.StringParameter(this, "UserPoolClientIdParameter", {
       parameterName: `/vimo/${props.stage}/user-pool-client-id`,
       stringValue: userPoolClient.userPoolClientId,
-    });
+    })
 
     if (props.stage.startsWith("test")) {
       const serverlessSpy = new ServerlessSpy(this, "ServerlessSpy", {
         generateSpyEventsFileLocation: "test/spy.ts",
-      });
-      serverlessSpy.spy();
+      })
+      serverlessSpy.spy()
     }
   }
 
   getEventBus(stage: string) {
     if (stage.startsWith("test")) {
-      const eventBus = new events.EventBus(this, "EventBus");
+      const eventBus = new events.EventBus(this, "EventBus")
       new cdk.CfnOutput(this, "EventBusName", {
         value: eventBus.eventBusName,
-      });
-      return eventBus;
+      })
+      return eventBus
     }
     return events.EventBus.fromEventBusArn(
       this,
@@ -208,6 +208,6 @@ export class CognitoEsg extends cdk.Stack {
         this,
         `/vimo/${stage}/event-bus-arn`,
       ),
-    );
+    )
   }
 }

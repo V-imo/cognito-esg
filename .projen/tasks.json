@@ -215,7 +215,8 @@
       "name": "test:e2e",
       "steps": [
         {
-          "exec": "jest --config jest.e2e.config.json --runInBand --passWithNoTests"
+          "exec": "NODE_OPTIONS=\"--max-old-space-size=8192 --experimental-vm-modules\" jest --config jest.e2e.config.json --runInBand --passWithNoTests",
+          "receiveArgs": true
         }
       ]
     },

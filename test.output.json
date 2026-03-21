@@ -1,10 +1,10 @@
 {
   "test-cognito-esg": {
     "EventBusName": "testcognitoesgEventBus76F610DE",
-    "UserPoolId": "eu-north-1_DwJantYkM",
+    "UserPoolId": "eu-central-1_y0OProUJJ",
     "ServiceName": "cognito-esg",
-    "InspectorPoolId": "eu-north-1_vtNFqTl3w",
-    "ServerlessSpyWsUrl": "a3ksyngqjdf8yd-ats.iot.eu-north-1.amazonaws.com/TestCognitoEsg",
-    "CognitoEsgTableName": "test-cognito-esg-CognitoEsgTable5FB07F88-1L6EM3C441EXM"
+    "InspectorPoolId": "eu-central-1_IEDrKI6IZ",
+    "ServerlessSpyWsUrl": "awmytlfkneef7-ats.iot.eu-central-1.amazonaws.com/TestCognitoEsg",
+    "CognitoEsgTableName": "test-cognito-esg-CognitoEsgTable5FB07F88-Q3032DA2QZ4W"
   }
 }
